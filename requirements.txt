@@ -1,0 +1,9 @@
+numpy
+pandas
+ipykernel
+jupyter
+ipywidgets
+accelerate
+bitsandbytes
+transformers
+sentencepiece
