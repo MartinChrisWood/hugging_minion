@@ -53,7 +53,10 @@ prompts = {
     "sexism": "Rate how sexist this job description is on a scale of 1 (not sexist) to 5 (very sexist).  Job description: ",
     "company": "Tell me the name of the company advertising this job if it's present in the description.  Job description: ",
     "shop": "Does this job involve working in a retail shop?  Answer yes or no.  Job description: ",
-    "tech": "Does this job involve working with databases?  Answer yes or no.  Job description: "
+    "tech": "Does this job involve working with databases?  Answer yes or no.  Job description: ",
+    "grad": "Is this job description advertised at recent graduates or those with less experience?  Answer yes or no.  Job description: ",
+    "sector": "What type of role is being advertised in this job description?  Reply with one of 'management', 'sales', 'administrative', 'technology/IT', 'logistics', or 'other'.  Job description:",
+    "quals": "Is the job in the job description likely to require a degree to perform? Answer yes or no.  Job description: "
 }
 
 def prompt_tokenize(prompt:str, texts:iter, tokenizer=tokenizer, limit:int=480):
@@ -75,10 +78,10 @@ from transformers import pipeline
 
 # Instantiate a classification model, trained for this kind of work
 classifier = pipeline("zero-shot-classification",
-                      model="MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+                      model="typeform/distilbert-base-uncased-mnli",
                       device_map="cuda:0")
 # Define the labels to evaluate against this text and classify
-candidate_labels = ['finance', 'technology', 'retail', 'health', 'internship']
+candidate_labels = ['management', 'sales', 'administrative', 'technology/IT', 'logistics', 'other']
 
 
 #%%
@@ -98,7 +101,10 @@ def _do_prompt(prompt, text):
 #%%
 results = []
 for i, job in tqdm(enumerate(jobs_df.sample(500)["jobpost"])):
-    record = {"index": i}
+    record = {
+        "index": i,
+        "sequence": re.sub(r"[^a-zA-Z0-9 ]", "", job)[:100]
+    }
 
     # Applies all the Large language Model prompts
     for key in prompts.keys():
